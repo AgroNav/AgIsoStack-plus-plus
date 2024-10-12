@@ -549,7 +549,7 @@ namespace isobus
 
 									if (on_value_command(rxMessage.get_source_control_function(), DDI, elementNumber, processVariableValue, errorCodes))
 									{
-										LOG_DEBUG("[TC Server]: Client 0x%02X value command for element %u DDI %u and value %d OK.", rxMessage.get_source_control_function()->get_address(), elementNumber, DDI, processVariableValue);
+										LOG_DEBUG("[TC Server]: Client 0x%02X value command for element %u DDI %u and value %x OK.", rxMessage.get_source_control_function()->get_address(), elementNumber, DDI, processVariableValue);
 
 										if (ProcessDataCommands::SetValueAndAcknowledge == static_cast<ProcessDataCommands>(rxData[0] & 0x0F))
 										{

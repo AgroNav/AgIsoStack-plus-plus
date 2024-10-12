@@ -41,6 +41,21 @@ namespace isobus
 		        (rateSetpoint.dataDictionaryIdentifier != static_cast<std::uint16_t>(DataDescriptionIndex::Reserved)));
 	}
 
+	// void DeviceDescriptorObjectPoolHelper::print_ddop(DeviceDescriptorObjectPool &ddop)
+	// {
+	// 	if (0 == ddop.size())
+	// 	{
+	// 		LOG_ERROR("[DDOP Helper]: No objects in the pool.");
+	// 		return; // Return empty object
+	// 	}
+
+	// 	for (std::uint16_t i = 0; i < ddop.size(); i++)
+	// 	{
+	// 		auto deviceObject = ddop.get_object_by_index(i);
+
+	// 	}
+	// }
+
 	DeviceDescriptorObjectPoolHelper::Implement DeviceDescriptorObjectPoolHelper::get_implement_geometry(DeviceDescriptorObjectPool &ddop)
 	{
 		Implement retVal;
@@ -140,6 +155,8 @@ namespace isobus
 			{
 				auto element = ddop.get_object_by_index(i);
 
+				LOG_DEBUG("[DDOP Helper] " + element->get_designator() + ", ID: " + std::to_string(element->get_object_id()));
+
 				if ((nullptr != element) &&
 				    (task_controller_object::ObjectTypes::DeviceElement == element->get_object_type()) &&
 				    (std::static_pointer_cast<task_controller_object::DeviceElementObject>(element)->get_parent_object() == elementObject->get_object_id()))
@@ -187,6 +204,8 @@ namespace isobus
 					if (task_controller_object::ObjectTypes::DeviceProperty == child->get_object_type())
 					{
 						auto property = std::static_pointer_cast<task_controller_object::DevicePropertyObject>(child);
+
+						LOG_DEBUG("[DDOP parse_element] DevicePropertyObject. Designator: " + property->get_designator() + ", DDI: " + std::to_string(property->get_ddi()));
 						set_value_from_property(boomToPopulate.xOffset_mm, property, DataDescriptionIndex::DeviceElementOffsetX);
 						set_value_from_property(boomToPopulate.yOffset_mm, property, DataDescriptionIndex::DeviceElementOffsetY);
 						set_value_from_property(boomToPopulate.zOffset_mm, property, DataDescriptionIndex::DeviceElementOffsetZ);
@@ -194,6 +213,12 @@ namespace isobus
 					else if (task_controller_object::ObjectTypes::DeviceProcessData == child->get_object_type())
 					{
 						auto processData = std::static_pointer_cast<task_controller_object::DeviceProcessDataObject>(child);
+						LOG_DEBUG("[DDOP parse_element] DeviceProcessData. Designator: " + processData->get_designator()+ " DDI: %u, Triggers: %u, Properties: %u, Element number: %u",
+							  processData->get_ddi(),
+							  processData->get_trigger_methods_bitfield(),
+							  processData->get_properties_bitfield(),
+							  elementObject->get_element_number());
+
 						set_editable_from_process_data(boomToPopulate.xOffset_mm, processData, DataDescriptionIndex::DeviceElementOffsetX);
 						set_editable_from_process_data(boomToPopulate.yOffset_mm, processData, DataDescriptionIndex::DeviceElementOffsetY);
 						set_editable_from_process_data(boomToPopulate.zOffset_mm, processData, DataDescriptionIndex::DeviceElementOffsetZ);
@@ -202,6 +227,7 @@ namespace isobus
 					         (task_controller_object::DeviceElementObject::Type::Bin == std::static_pointer_cast<task_controller_object::DeviceElementObject>(child)->get_type()))
 					{
 						auto binInfo = parse_bin(ddop, std::static_pointer_cast<task_controller_object::DeviceElementObject>(child));
+
 
 						if (binInfo.is_valid())
 						{
@@ -232,6 +258,9 @@ namespace isobus
 				if (task_controller_object::ObjectTypes::DeviceProperty == sectionChildObject->get_object_type())
 				{
 					auto property = std::static_pointer_cast<task_controller_object::DevicePropertyObject>(sectionChildObject);
+
+					LOG_DEBUG("[DDOP parse_section] DevicePropertyObject. Designator: " + property->get_designator() + ", DDI: " + std::to_string(property->get_ddi()));
+
 					set_value_from_property(retVal.xOffset_mm, property, DataDescriptionIndex::DeviceElementOffsetX);
 					set_value_from_property(retVal.yOffset_mm, property, DataDescriptionIndex::DeviceElementOffsetY);
 					set_value_from_property(retVal.zOffset_mm, property, DataDescriptionIndex::DeviceElementOffsetZ);
@@ -240,6 +269,13 @@ namespace isobus
 				else if (task_controller_object::ObjectTypes::DeviceProcessData == sectionChildObject->get_object_type())
 				{
 					auto processData = std::static_pointer_cast<task_controller_object::DeviceProcessDataObject>(sectionChildObject);
+
+					LOG_DEBUG("[DDOP parse_element] DeviceProcessData. Designator: " + processData->get_designator()+ " DDI: %u, Triggers: %u, Properties: %u, Element number: %u",
+							processData->get_ddi(),
+							processData->get_trigger_methods_bitfield(),
+							processData->get_properties_bitfield(),
+							elementObject->get_element_number());
+
 					set_editable_from_process_data(retVal.xOffset_mm, processData, DataDescriptionIndex::DeviceElementOffsetX);
 					set_editable_from_process_data(retVal.yOffset_mm, processData, DataDescriptionIndex::DeviceElementOffsetY);
 					set_editable_from_process_data(retVal.zOffset_mm, processData, DataDescriptionIndex::DeviceElementOffsetZ);
@@ -326,6 +362,8 @@ namespace isobus
 		// A bin is used to identify a product.
 		// We'll use this to populate the product control information.
 		ProductControlInformation retVal;
+
+		LOG_DEBUG("[DDOP parse_bin] ?????");
 
 		if (task_controller_object::DeviceElementObject::Type::Bin == elementObject->get_type())
 		{
